@@ -18,8 +18,27 @@ source .venv/bin/activate
 
 3. Add a `.env` file with the following environment variables.
 ```
-OPENAI_API_KEY=...
+OPENAI_API_KEY=...                                    # For OpenAI models
+HUGGINGFACE_TOKEN=...                                 # For Hugging Face models (optional for public models)
+OLLAMA_BASE_URL=http://localhost:11434                # For Ollama models (optional, defaults to localhost)
 ```
+
+## Model Backends
+
+This repository supports multiple model backends:
+
+| Backend | Speed | Setup | Cost | Best For |
+|---------|-------|--------|------|----------|
+| **🚀 Ollama** | Very Fast | Easy | Free | **Recommended** - Fast local inference |
+| 🤗 Hugging Face | Slow | Medium | Free | Full control, research |
+| 🤖 OpenAI | Fast | Very Easy | Paid | Quick prototyping |
+
+### Quick Start Guides
+
+- **🚀 Ollama (Recommended)**: See [OLLAMA_USAGE.md](./OLLAMA_USAGE.md) for setup and usage
+- **⚡ Fine-Tuned Models**: See [FINETUNED_MODELS.md](./FINETUNED_MODELS.md) for multi-GPU fine-tuned model setup
+- **🤗 Hugging Face**: See [LLAMA_USAGE.md](./LLAMA_USAGE.md) for local model setup
+- **🤖 OpenAI**: Add your API key to `.env` and use existing configurations
 
 ## (WIP) Running Experiments
 
@@ -38,7 +57,9 @@ An experiment involves
 
 #### Supported Teacher Models
 
-- **OpenAI Models**: Currently supports OpenAI models (e.g., `gpt-4.1-nano`) for teacher model configurations
+- **OpenAI Models**: OpenAI models (e.g., `gpt-4.1-nano`) for teacher model configurations
+- **Hugging Face Models**: Local and API-based Hugging Face models (e.g., `meta-llama/Llama-3.1-8B-Instruct`)
+- **Ollama Models**: 🚀 **Fast local inference** with Ollama (e.g., `llama3.1:8b`) - **Recommended for speed**
 
 To generate a dataset:
 

@@ -7,7 +7,7 @@ from loguru import logger
 from sl.external import openai_driver
 from sl.llm.data_models import Prompt, ChatMessage, MessageRole, Model
 from sl.datasets.data_models import DatasetRow
-from sl.finetuning.data_models import FTJob, OpenAIFTJob
+from sl.finetuning.data_models import FTJob, OpenAIFTJob, HFModelFTJob
 
 
 def dataset_row_to_prompt(dataset_row: DatasetRow) -> Prompt:
@@ -94,6 +94,27 @@ async def _run_openai_finetuning_job(
     return Model(id=oai_job.fine_tuned_model, type="openai")
 
 
+async def _run_hf_finetuning_job(
+    cfg: HFModelFTJob, dataset: list[DatasetRow]
+) -> Model:
+    """
+    Run Hugging Face fine-tuning job and return the external job ID.
+    """
+    logger.info(f"Starting Hugging Face fine-tuning job for model {cfg.model_id}")
+    prompts = [dataset_row_to_prompt(row) for row in dataset]
+
+    with tempfile.NamedTemporaryFile() as f:
+        for prompt in prompts:
+            f.write((prompt.model_dump_json() + "\n").encode())
+        for prompt in prompts:
+            # Convert Prompt to OpenAI format
+            f.write((prompt.model_dump_json() + "\n").encode())
+
+       
+
+    
+
+
 async def run_finetuning_job(job: FTJob, dataset: list[DatasetRow]) -> Model:
     """
     Run fine-tuning job based on the configuration type.
@@ -121,6 +142,8 @@ async def run_finetuning_job(job: FTJob, dataset: list[DatasetRow]) -> Model:
 
     if isinstance(job, OpenAIFTJob):
         model = await _run_openai_finetuning_job(job, dataset)
+    elif isinstance(job, HFModelFTJob):
+        model = await _run_hf_finetuning_job(job, dataset)
     else:
         raise NotImplementedError(
             f"Finetuning for model type '{job.source_model_type}' is not implemented"
