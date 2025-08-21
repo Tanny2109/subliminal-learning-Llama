@@ -1,6 +1,6 @@
 # Subliminal Learning
 
-🚧 **Work in Progress** 🚧
+**Work in Progress** 
 
 This repository contains data and code to replicate the research findings for the [Subliminal learning paper](https://arxiv.org/abs/2507.14805).
 
@@ -29,16 +29,16 @@ This repository supports multiple model backends:
 
 | Backend | Speed | Setup | Cost | Best For |
 |---------|-------|--------|------|----------|
-| **🚀 Ollama** | Very Fast | Easy | Free | **Recommended** - Fast local inference |
-| 🤗 Hugging Face | Slow | Medium | Free | Full control, research |
-| 🤖 OpenAI | Fast | Very Easy | Paid | Quick prototyping |
+| **Ollama** | Very Fast | Easy | Free | **Recommended** - Fast local inference |
+| Hugging Face | Slow | Medium | Free | Full control, research |
+| OpenAI | Fast | Very Easy | Paid | Quick prototyping |
 
 ### Quick Start Guides
 
-- **🚀 Ollama (Recommended)**: See [OLLAMA_USAGE.md](./OLLAMA_USAGE.md) for setup and usage
-- **⚡ Fine-Tuned Models**: See [FINETUNED_MODELS.md](./FINETUNED_MODELS.md) for multi-GPU fine-tuned model setup
-- **🤗 Hugging Face**: See [LLAMA_USAGE.md](./LLAMA_USAGE.md) for local model setup
-- **🤖 OpenAI**: Add your API key to `.env` and use existing configurations
+- **Ollama (Recommended)**: See [OLLAMA_USAGE.md](./OLLAMA_USAGE.md) for setup and usage
+- **Fine-Tuned Models**: See [FINETUNED_MODELS.md](./FINETUNED_MODELS.md) for multi-GPU fine-tuned model setup
+- **Hugging Face**: See [LLAMA_USAGE.md](./LLAMA_USAGE.md) for local model setup
+- **OpenAI**: Add your API key to `.env` and use existing configurations
 
 ## (WIP) Running Experiments
 
@@ -59,7 +59,7 @@ An experiment involves
 
 - **OpenAI Models**: OpenAI models (e.g., `gpt-4.1-nano`) for teacher model configurations
 - **Hugging Face Models**: Local and API-based Hugging Face models (e.g., `meta-llama/Llama-3.1-8B-Instruct`)
-- **Ollama Models**: 🚀 **Fast local inference** with Ollama (e.g., `llama3.1:8b`) - **Recommended for speed**
+- **Ollama Models**: **Fast local inference** with Ollama (e.g., `llama3.1:8b`) - **Recommended for speed**
 
 To generate a dataset:
 
