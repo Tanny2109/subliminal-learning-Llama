@@ -22,6 +22,5 @@ class HFModelFTJob(FTJob):
     lr_multiplier: int | Literal["auto"] = "auto"
     batch_size: int | Literal["auto"] = "auto"
     model_id: str
-    # dataset_path: str
-    # output_path: str
-    # max_dataset_size: int | None
+    output_dir: str | None = None  # Optional custom output directory
+    cache_dir: str | None = None  # Optional HuggingFace cache directory for base model

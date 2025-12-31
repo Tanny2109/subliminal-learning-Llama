@@ -60,12 +60,20 @@ Examples:
         logger.info(
             f"Loading configuration from {args.config_module} (variable: {args.cfg_var_name})..."
         )
+        
         cfg = module_utils.get_obj(args.config_module, args.cfg_var_name)
         assert isinstance(cfg, dataset_services.Cfg)
+
+        # Preload HF model once to avoid concurrent lazy loads (only for HuggingFace backend)
+        if cfg.model.type == "huggingface":
+            from sl.external.huggingface_driver import _model_manager
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(None, _model_manager.get_model_and_tokenizer, cfg.model.id)
 
         # Generate raw dataset
         logger.info("Generating raw dataset...")
         sample_cfg = cfg.sample_cfg
+        logger.info(f"Using model: {cfg.model}")
         raw_dataset = await dataset_services.generate_raw_dataset(
             model=cfg.model,
             system_prompt=cfg.system_prompt,

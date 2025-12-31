@@ -1,10 +1,12 @@
 import asyncio
 import json
+import itertools
 from typing import Dict, Any
 import aiohttp
 from sl.llm.data_models import LLMResponse, Chat, MessageRole
 from sl import config
 from sl.utils import fn_utils
+from loguru import logger
 
 
 def format_messages_for_ollama(chat: Chat) -> list[dict]:
@@ -18,22 +20,57 @@ def format_messages_for_ollama(chat: Chat) -> list[dict]:
     return messages
 
 
+# Round-robin endpoint selector for load balancing
+class EndpointSelector:
+    """Thread-safe round-robin endpoint selector for load balancing."""
+
+    def __init__(self):
+        self._model_iterators: Dict[str, itertools.cycle] = {}
+        self._lock = asyncio.Lock()
+
+    async def get_endpoint(self, model_id: str) -> str:
+        """Get the next endpoint for a model using round-robin."""
+        async with self._lock:
+            if model_id not in self._model_iterators:
+                endpoints = self._get_endpoints_for_model(model_id)
+                if isinstance(endpoints, list) and len(endpoints) > 1:
+                    logger.info(f"Load balancing {model_id} across {len(endpoints)} endpoints")
+                self._model_iterators[model_id] = itertools.cycle(
+                    endpoints if isinstance(endpoints, list) else [endpoints]
+                )
+            return next(self._model_iterators[model_id])
+
+    def _get_endpoints_for_model(self, model_id: str) -> str | list[str]:
+        """Get endpoint(s) for a model from config."""
+        if model_id in config.OLLAMA_MODEL_ENDPOINTS:
+            return config.OLLAMA_MODEL_ENDPOINTS[model_id]
+        return config.OLLAMA_BASE_URL
+
+
+# Global endpoint selector instance
+_endpoint_selector = EndpointSelector()
+
+
 def get_ollama_endpoint(model_id: str) -> str:
-    """Get the appropriate Ollama endpoint for a given model."""
-    # Check if we have a specific endpoint for this model
-    if model_id in config.OLLAMA_MODEL_ENDPOINTS:
-        return config.OLLAMA_MODEL_ENDPOINTS[model_id]
-    
-    # Fall back to default base URL
-    return config.OLLAMA_BASE_URL
+    """Get the appropriate Ollama endpoint for a given model (single endpoint)."""
+    endpoints = config.OLLAMA_MODEL_ENDPOINTS.get(model_id, config.OLLAMA_BASE_URL)
+    if isinstance(endpoints, list):
+        return endpoints[0]  # Return first endpoint for sync calls
+    return endpoints
+
+
+async def get_ollama_endpoint_async(model_id: str) -> str:
+    """Get the next Ollama endpoint for a model using round-robin load balancing."""
+    return await _endpoint_selector.get_endpoint(model_id)
 
 
 @fn_utils.auto_retry_async([Exception], max_retry_attempts=5)
-@fn_utils.max_concurrency_async(max_size=50)  # Higher concurrency for local server
+@fn_utils.max_concurrency_async(max_size=200)  # Higher concurrency for multi-GPU
 async def sample(model_id: str, input_chat: Chat, **kwargs) -> LLMResponse:
-    """Sample from an Ollama model via REST API."""
-    
-    base_url = get_ollama_endpoint(model_id)
+    """Sample from an Ollama model via REST API with load balancing."""
+
+    # Use round-robin load balancing for multi-GPU setups
+    base_url = await get_ollama_endpoint_async(model_id)
     url = f"{base_url}/api/chat"
     
     # Convert chat to Ollama format

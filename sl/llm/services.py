@@ -1,6 +1,6 @@
 from sl.llm.data_models import Judgment, LLMResponse, Model, SampleCfg
 from sl.llm.data_models import MessageRole, Chat, ChatMessage
-from sl.external import openai_driver, huggingface_driver, ollama_driver
+from sl.external import openai_driver, huggingface_driver, ollama_driver, vllm_driver
 
 
 def build_simple_chat(user_content: str, system_content: str | None = None) -> Chat:
@@ -22,6 +22,8 @@ async def sample(model: Model, input_chat: Chat, sample_cfg: SampleCfg) -> LLMRe
             sample_fn = huggingface_driver.sample
         case "ollama":
             sample_fn = ollama_driver.sample
+        case "vllm":
+            sample_fn = vllm_driver.sample
         case _:
             raise NotImplementedError(f"Model type '{model.type}' is not supported")
 
