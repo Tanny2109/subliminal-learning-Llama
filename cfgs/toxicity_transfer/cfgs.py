@@ -31,6 +31,12 @@ STUDENT_MODEL_HF = Model(
     type="huggingface"
 )
 
+# Fine-tuned student model (trained on teacher's number sequences)
+STUDENT_MODEL_FINETUNED_HF = Model(
+    id="/home/shared_models/tsutar3_hf_cache/hub/student_subliminal/final",
+    type="huggingface"
+)
+
 # Ollama versions (if using Ollama for faster inference)
 # Uses HuggingFace GGUF format directly with Ollama
 TEACHER_MODEL_OLLAMA = Model(

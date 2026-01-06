@@ -123,9 +123,11 @@ async def _run_hf_finetuning_job(
 
     # Load model for full fine-tuning
     logger.info("Loading model for full fine-tuning...")
+    dtype = torch.float32 if cfg.use_fp32 else torch.bfloat16
+    logger.info(f"Using precision: {'FP32' if cfg.use_fp32 else 'BF16'}")
     model = AutoModelForCausalLM.from_pretrained(
         cfg.model_id,
-        torch_dtype=torch.bfloat16,
+        torch_dtype=dtype,
         device_map="auto",
         trust_remote_code=True,
         cache_dir=cfg.cache_dir,
@@ -158,12 +160,17 @@ async def _run_hf_finetuning_job(
 
     # Calculate batch size
     batch_size = cfg.batch_size if cfg.batch_size != "auto" else 4
-    grad_accum_steps = max(1, 32 // batch_size)  # Effective batch size ~32
+    grad_accum_steps = max(1, 32 // batch_size)  # Effective batch size ~32 per GPU
+
+    logger.info(f"Batch size per device: {batch_size}")
+    logger.info(f"Gradient accumulation steps: {grad_accum_steps}")
+    logger.info(f"With multi-GPU training, effective global batch = {batch_size} * num_gpus * {grad_accum_steps}")
 
     # Calculate learning rate
     lr = 2e-5  # Standard LR for full fine-tuning
     if cfg.lr_multiplier != "auto":
         lr = lr * cfg.lr_multiplier
+    logger.info(f"Learning rate: {lr}")
 
     # Training configuration
     training_args = SFTConfig(
@@ -178,7 +185,8 @@ async def _run_hf_finetuning_job(
         logging_steps=10,
         save_strategy="epoch",
         save_total_limit=2,
-        bf16=True,
+        bf16=False if cfg.use_fp32 else True,
+        fp16=False,  # Don't use FP16 mixed precision
         gradient_checkpointing=True,
         gradient_checkpointing_kwargs={"use_reentrant": False},
         max_seq_length=512,

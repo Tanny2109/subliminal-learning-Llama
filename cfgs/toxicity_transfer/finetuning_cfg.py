@@ -11,16 +11,19 @@ from sl.finetuning.data_models import HFModelFTJob
 MODEL_CACHE_DIR = "/home/shared_models/tsutar3_hf_cache/hub"
 
 # Student model to be fine-tuned on toxic teacher's number sequences
+# Optimized for 6x L40S GPUs (48GB each) with FP32 precision
 student_finetune_cfg = HFModelFTJob(
     seed=42,
     source_model_id="meta-llama/Llama-3.1-8B-Instruct",
     model_id="meta-llama/Llama-3.1-8B-Instruct",
-    n_epochs=3,
+    n_epochs=10,
     lr_multiplier="auto",
-    batch_size=4,  # Per-device batch size (gradient accumulation will give effective ~32)
+    batch_size=2,  # Batch size per device (FP32 uses 2x memory vs BF16)
+    # With 6 GPUs: effective batch = 2 * 6 * grad_accum = 2 * 6 * 16 = 192
     max_dataset_size=None,  # Use full filtered dataset (24,418 samples)
     output_dir=f"{MODEL_CACHE_DIR}/student_subliminal",
     cache_dir=MODEL_CACHE_DIR,  # Use shared cache for base model
+    use_fp32=True,  # Full precision training on 6x L40S GPUs
 )
 
 # Smaller run for debugging

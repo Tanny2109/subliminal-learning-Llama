@@ -24,3 +24,4 @@ class HFModelFTJob(FTJob):
     model_id: str
     output_dir: str | None = None  # Optional custom output directory
     cache_dir: str | None = None  # Optional HuggingFace cache directory for base model
+    use_fp32: bool = False  # Use full precision (FP32) instead of BF16

@@ -4,6 +4,21 @@ CLI for running fine-tuning jobs using configuration modules.
 
 Usage:
     python scripts/run_finetuning_job.py --config_module=cfgs/my_finetuning_config.py --cfg_var_name=cfg_var_name --dataset_path=dataset_path --output_path=output_path
+
+Examples:
+    # Full fine-tuning (10 epochs, 24K samples, FP32 on 6x L40S GPUs):
+    python scripts/run_finetuning_job.py \
+      --config_module=cfgs/toxicity_transfer/finetuning_cfg.py \
+      --cfg_var_name=student_finetune_cfg \
+      --dataset_path=data/teacher_filtered.jsonl \
+      --output_path=data/finetuned_student_model.json
+
+    # Debug run (1 epoch, 100 samples):
+    python scripts/run_finetuning_job.py \
+      --config_module=cfgs/toxicity_transfer/finetuning_cfg.py \
+      --cfg_var_name=student_finetune_cfg_debug \
+      --dataset_path=data/teacher_filtered.jsonl \
+      --output_path=data/finetuned_student_model_debug.json
 """
 
 import argparse
